@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Space &amp; Technology – Live News Hub</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #0d1117; color: #c9d1d9; line-height: 1.6; }
+a { color: #58a6ff; text-decoration: none; }
+a:hover { text-decoration: underline; }
+header { background: linear-gradient(135deg, #161b22, #1f2937);
+  padding: 40px 20px; text-align: center; border-bottom: 2px solid #30363d; }
+header h1 { font-size: 2.2rem; color: #f0f6fc; }
+.subtitle { color: #8b949e; margin-top: 8px; }
+section { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
+section h2 { font-size: 1.4rem; color: #f0f6fc; margin-bottom: 16px;
+  border-left: 4px solid #58a6ff; padding-left: 12px; }
+.comment-banner { background: #161b22; border: 1px solid #30363d;
+  border-left: 5px solid #3fb950; border-radius: 8px; padding: 18px 24px; }
+.comment-banner .label { display: inline-block; background: #3fb950; color: #0d1117;
+  font-size: 0.75rem; font-weight: bold; padding: 2px 8px;
+  border-radius: 12px; margin-bottom: 8px; text-transform: uppercase; }
+.comment-banner p { color: #c9d1d9; font-style: italic; }
+.sound-section { background: #161b22; border: 1px solid #30363d;
+  border-radius: 8px; padding: 20px 24px; }
+.sound-link { display: inline-block; background: #1f6feb; color: #fff;
+  padding: 10px 22px; border-radius: 6px; font-weight: bold;
+  margin-top: 10px; transition: background 0.2s; }
+.sound-link:hover { background: #388bfd; text-decoration: none; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+.card { background: #161b22; border: 1px solid #30363d; border-radius: 10px;
+  overflow: hidden; transition: box-shadow 0.3s; }
+.card:hover { box-shadow: 0 4px 20px rgba(88,166,255,0.2); }
+.card img { width: 100%; height: 200px; object-fit: cover;
+  cursor: zoom-in; transition: transform 0.35s ease; display: block; }
+.card img.zoomed { transform: scale(1.8); cursor: zoom-out; z-index: 10; position: relative; }
+.card-body { padding: 16px; }
+.card-body h3 { font-size: 1.1rem; color: #f0f6fc; margin-bottom: 8px; }
+.card-body p { font-size: 0.9rem; color: #8b949e; margin-bottom: 12px; }
+.trivia { background: #161b22; border: 1px solid #30363d;
+  border-radius: 8px; padding: 20px 24px; }
+.trivia ul { list-style: none; padding: 0; }
+.trivia li { padding: 10px 0; border-bottom: 1px solid #21262d;
+  color: #c9d1d9; }
+.trivia li::before { content: '❓ '; }
+.trivia li:last-child { border-bottom: none; }
+.spellcheck { background: #161b22; border: 1px solid #30363d;
+  border-radius: 8px; padding: 20px 24px; }
+.spell-input { display: flex; gap: 10px; margin: 14px 0; }
+.spell-input input { flex: 1; padding: 10px 14px; background: #0d1117;
+  border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; font-size: 1rem; }
+.spell-input button { padding: 10px 22px; background: #238636;
+  color: #fff; border: none; border-radius: 6px; cursor: pointer;
+  font-size: 1rem; font-weight: bold; transition: background 0.2s; }
+.spell-input button:hover { background: #2ea043; }
+#spellResult { margin-top: 12px; padding: 14px; border-radius: 6px;
+  font-size: 0.95rem; display: none; }
+#spellResult.valid { background: #1a3a22; border: 1px solid #3fb950; color: #3fb950; }
+#spellResult.invalid { background: #3a1a1a; border: 1px solid #f85149; color: #f85149; }
+#spellResult.error { background: #1e2a3a; border: 1px solid #58a6ff; color: #58a6ff; }
+footer { text-align: center; padding: 30px 20px;
+  color: #8b949e; font-size: 0.85rem;
+  border-top: 1px solid #21262d; margin-top: 40px; }
+footer a { color: #58a6ff; }
+</style>
+</head>
+<body>
+<header>
+  <h1>&#x1F680; Space &amp; Technology – Live News Hub</h1>
+  <p class="subtitle">Aggregated live content from Wikipedia &amp; Open Trivia DB</p>
+</header>
+
+<section class="comment-banner">
+  <span class="label">AI Comment</span>
+  <p>The implications of <b>internet</b> extend far beyond what we currently understand.</p>
+</section>
+
+<section class="sound-section">
+  <h2>&#x1F50A; Listen: NASA STS-1 Launch Audio</h2>
+  <p>Click the link below to play the sound:</p>
+  <a class="sound-link" href="https://upload.wikimedia.org/wikipedia/commons/4/4e/NASA_STS-1_launch_audio.ogg" target="_blank"
+     onclick="playSound(event)">&#x25B6; Play NASA Launch Sound</a>
+  <audio id="bgAudio" src="https://upload.wikimedia.org/wikipedia/commons/4/4e/NASA_STS-1_launch_audio.ogg"></audio>
+</section>
+
+<section class="articles">
+  <h2>&#x1F4F0; Live Articles from Wikipedia</h2>
+  <div class="cards">
+    <div class="card">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Earth_flag_PD.jpg/320px-Earth_flag_PD.jpg" alt="Space_exploration"
+           class="zoomable" id="img1"
+           onclick="toggleZoom(this)"
+           onmouseover="zoomIn(this)" onmouseout="zoomOut(this)" />
+      <div class="card-body">
+        <h3>Space_exploration</h3>
+        <p>Could not load content. Please check your internet connection.</p>
+        <a href="https://en.wikipedia.org/wiki/Space_exploration" target="_blank">Read more on Wikipedia &#x2192;</a>
+      </div>
+    </div>
+    <div class="card">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Stonehenge_Closeup.jpg/320px-Stonehenge_Closeup.jpg" alt="Artificial_intelligence"
+           class="zoomable" id="img2"
+           onclick="toggleZoom(this)"
+           onmouseover="zoomIn(this)" onmouseout="zoomOut(this)" />
+      <div class="card-body">
+        <h3>Artificial_intelligence</h3>
+        <p>Could not load content. Please check your internet connection.</p>
+        <a href="https://en.wikipedia.org/wiki/Artificial_intelligence" target="_blank">Read more on Wikipedia &#x2192;</a>
+      </div>
+    </div>
+    <div class="card">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Golden_Gate_Bridge_from_Baker_Beach.jpg/320px-Golden_Gate_Bridge_from_Baker_Beach.jpg" alt="Climate_change"
+           class="zoomable" id="img3"
+           onclick="toggleZoom(this)"
+           onmouseover="zoomIn(this)" onmouseout="zoomOut(this)" />
+      <div class="card-body">
+        <h3>Climate_change</h3>
+        <p>Could not load content. Please check your internet connection.</p>
+        <a href="https://en.wikipedia.org/wiki/Climate_change" target="_blank">Read more on Wikipedia &#x2192;</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="trivia">
+  <h2>&#x1F4A1; Tech Trivia (from Open Trivia DB)</h2>
+  <ul>
+    <li>The first computer bug was an actual insect found in a relay.</li>
+    <li>The Internet was originally called ARPANET.</li>
+    <li>Java was originally designed for interactive television.</li>
+    <li>The first hard disk could store only 5 MB of data.</li>
+  </ul>
+</section>
+
+<section class="spellcheck">
+  <h2>&#x1F4DD; Spell Checker (Java Backend)</h2>
+  <p>Type a word and click <b>Check</b> – the Java server queries an online dictionary.</p>
+  <div class="spell-input">
+    <input type="text" id="wordInput" placeholder="Enter a word..." />
+    <button onclick="checkSpelling()">Check</button>
+  </div>
+  <div id="spellResult"></div>
+</section>
+
+<footer>
+  <p>Sources: <a href="https://en.wikipedia.org">Wikipedia</a> | <a href="https://opentdb.com">Open Trivia DB</a> | <a href="https://dictionaryapi.dev">Free Dictionary API</a></p>
+  <p>Generated by Web.java &copy; 2026</p>
+</footer>
+
+<script>
+// Image zoom on hover and click
+function zoomIn(img) {
+  if (!img.classList.contains('zoomed')) img.style.transform = 'scale(1.5)';
+}
+function zoomOut(img) {
+  if (!img.classList.contains('zoomed')) img.style.transform = 'scale(1.0)';
+}
+function toggleZoom(img) {
+  img.classList.toggle('zoomed');
+  img.style.transform = img.classList.contains('zoomed') ? 'scale(1.8)' : 'scale(1.0)';
+}
+
+// Play sound
+function playSound(e) {
+  e.preventDefault();
+  var audio = document.getElementById('bgAudio');
+  if (audio.paused) { audio.play(); }
+  else { audio.pause(); audio.currentTime = 0; }
+}
+
+// Spell check via Java backend
+function checkSpelling() {
+  var word = document.getElementById('wordInput').value.trim();
+  var resultDiv = document.getElementById('spellResult');
+  if (!word) { showResult('error', 'Please enter a word first.'); return; }
+  resultDiv.style.display = 'block';
+  resultDiv.className = 'error';
+  resultDiv.textContent = 'Checking...';
+  fetch('http://localhost:8080/spellcheck?word=' + encodeURIComponent(word))
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.valid) {
+        showResult('valid',
+          '✓ "' + data.word + '" is spelled correctly!\n'
+          + 'Part of speech: ' + data.partOfSpeech + '\n'
+          + 'Definition: ' + data.definition);
+      } else {
+        showResult('invalid', '✗ "' + data.word + '" — ' + (data.message || 'Not found in dictionary.'));
+      }
+    })
+    .catch(function(err) {
+      showResult('error',
+        '⚠ Could not reach the Java spell-check server.\n'
+        + 'Make sure Web.java is running (port 8080).\nError: ' + err);
+    });
+}
+
+function showResult(cls, msg) {
+  var d = document.getElementById('spellResult');
+  d.className = cls;
+  d.style.display = 'block';
+  d.style.whiteSpace = 'pre-line';
+  d.textContent = msg;
+}
+
+// Allow pressing Enter in the input box
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('wordInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') checkSpelling();
+  });
+});
+</script>
+</body>
+</html>
