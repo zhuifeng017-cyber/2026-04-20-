@@ -25,9 +25,10 @@ section h2 { font-size: 1.4rem; color: #f0f6fc; margin-bottom: 16px;
 .sound-section { background: #161b22; border: 1px solid #30363d;
   border-radius: 8px; padding: 20px 24px; }
 .sound-link { display: inline-block; background: #1f6feb; color: #fff;
-  padding: 10px 22px; border-radius: 6px; font-weight: bold;
-  margin-top: 10px; transition: background 0.2s; }
+  padding: 10px 22px; border-radius: 6px; font-weight: bold; border: none;
+  margin-top: 10px; cursor: pointer; font-size: 1rem; transition: background 0.2s; }
 .sound-link:hover { background: #388bfd; text-decoration: none; }
+.sound-link:disabled { background: #555; cursor: not-allowed; }
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
 .card { background: #161b22; border: 1px solid #30363d; border-radius: 10px;
   overflow: hidden; transition: box-shadow 0.3s; }
@@ -73,22 +74,20 @@ footer a { color: #58a6ff; }
 
 <section class="comment-banner">
   <span class="label">AI Comment</span>
-  <p>The implications of <b>internet</b> extend far beyond what we currently understand.</p>
+  <p>As we learn more about <b>connection</b>, new questions continue to emerge.</p>
 </section>
 
 <section class="sound-section">
-  <h2>&#x1F50A; Listen: NASA STS-1 Launch Audio</h2>
-  <p>Click the link below to play the sound:</p>
-  <a class="sound-link" href="https://upload.wikimedia.org/wikipedia/commons/4/4e/NASA_STS-1_launch_audio.ogg" target="_blank"
-     onclick="playSound(event)">&#x25B6; Play NASA Launch Sound</a>
-  <audio id="bgAudio" src="https://upload.wikimedia.org/wikipedia/commons/4/4e/NASA_STS-1_launch_audio.ogg"></audio>
+  <h2>&#x1F50A; Listen: NASA Launch Sound Effect</h2>
+  <p>Click the button below to play the synthesized launch sound:</p>
+  <button class="sound-link" id="soundBtn" onclick="playSound(this)">&#x25B6; Play NASA Launch Sound</button>
 </section>
 
 <section class="articles">
   <h2>&#x1F4F0; Live Articles from Wikipedia</h2>
   <div class="cards">
     <div class="card">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Earth_flag_PD.jpg/320px-Earth_flag_PD.jpg" alt="Space_exploration"
+      <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc0MDAnIGhlaWdodD0nMjAwJyB2aWV3Qm94PScwIDAgNDAwIDIwMCc+PHJlY3Qgd2lkdGg9JzQwMCcgaGVpZ2h0PScyMDAnIGZpbGw9JyMwNTA1MjAnLz48Y2lyY2xlIGN4PSczMCcgY3k9JzI1JyByPScxLjUnIGZpbGw9J3doaXRlJy8+PGNpcmNsZSBjeD0nODAnIGN5PSc0NScgcj0nMScgZmlsbD0nd2hpdGUnLz48Y2lyY2xlIGN4PScxNTAnIGN5PScxNScgcj0nMS41JyBmaWxsPSd3aGl0ZScvPjxjaXJjbGUgY3g9JzIzMCcgY3k9JzM1JyByPScxJyBmaWxsPSd3aGl0ZScvPjxjaXJjbGUgY3g9JzMwMCcgY3k9JzIwJyByPScyJyBmaWxsPSd3aGl0ZScvPjxjaXJjbGUgY3g9JzM3MCcgY3k9JzUwJyByPScxJyBmaWxsPSd3aGl0ZScvPjxjaXJjbGUgY3g9JzYwJyBjeT0nODAnIHI9JzEnIGZpbGw9J3doaXRlJy8+PGNpcmNsZSBjeD0nMzQwJyBjeT0nOTAnIHI9JzEuNScgZmlsbD0nd2hpdGUnLz48Y2lyY2xlIGN4PScxODAnIGN5PSc2MCcgcj0nMScgZmlsbD0nd2hpdGUnLz48Y2lyY2xlIGN4PScyNjAnIGN5PSc3NScgcj0nMScgZmlsbD0nd2hpdGUnLz48cG9seWdvbiBwb2ludHM9JzIwMCwyMiAxODIsMTAwIDIxOCwxMDAnIGZpbGw9JyNhYWJiY2MnLz48cmVjdCB4PScxODInIHk9Jzg4JyB3aWR0aD0nMzYnIGhlaWdodD0nMjInIGZpbGw9JyM4ODk5YWEnLz48cG9seWdvbiBwb2ludHM9JzE4NSwxMDggMTc1LDEzMiAxOTUsMTE4JyBmaWxsPScjZmY4ODAwJy8+PHBvbHlnb24gcG9pbnRzPScyMTUsMTA4IDIyNSwxMzIgMjA1LDExOCcgZmlsbD0nI2ZmODgwMCcvPjxlbGxpcHNlIGN4PScyMDAnIGN5PScxMjgnIHJ4PSc5JyByeT0nMTYnIGZpbGw9JyNmZjY2MDAnIG9wYWNpdHk9JzAuODUnLz48dGV4dCB4PScyMDAnIHk9JzE2OCcgdGV4dC1hbmNob3I9J21pZGRsZScgZmlsbD0nIzhhYjRmOCcgZm9udC1zaXplPScxNScgZm9udC1mYW1pbHk9J3NhbnMtc2VyaWYnIGZvbnQtd2VpZ2h0PSdib2xkJz5TcGFjZSBFeHBsb3JhdGlvbjwvdGV4dD48dGV4dCB4PScyMDAnIHk9JzE4NicgdGV4dC1hbmNob3I9J21pZGRsZScgZmlsbD0nIzhhYjRmOCcgZm9udC1zaXplPScxMScgZm9udC1mYW1pbHk9J3NhbnMtc2VyaWYnPldpa2lwZWRpYTwvdGV4dD48L3N2Zz4=" alt="Space_exploration"
            class="zoomable" id="img1"
            onclick="toggleZoom(this)"
            onmouseover="zoomIn(this)" onmouseout="zoomOut(this)" />
@@ -99,7 +98,7 @@ footer a { color: #58a6ff; }
       </div>
     </div>
     <div class="card">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Stonehenge_Closeup.jpg/320px-Stonehenge_Closeup.jpg" alt="Artificial_intelligence"
+      <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc0MDAnIGhlaWdodD0nMjAwJyB2aWV3Qm94PScwIDAgNDAwIDIwMCc+PHJlY3Qgd2lkdGg9JzQwMCcgaGVpZ2h0PScyMDAnIGZpbGw9JyMxMjA4MmEnLz48bGluZSB4MT0nMjAwJyB5MT0nNzgnIHgyPScxMzAnIHkyPSc0OCcgc3Ryb2tlPScjNmQyOGQ5JyBzdHJva2Utd2lkdGg9JzEuNScvPjxsaW5lIHgxPScyMDAnIHkxPSc3OCcgeDI9JzI3MCcgeTI9JzQ4JyBzdHJva2U9JyM2ZDI4ZDknIHN0cm9rZS13aWR0aD0nMS41Jy8+PGxpbmUgeDE9JzIwMCcgeTE9Jzc4JyB4Mj0nMTMwJyB5Mj0nMTE4JyBzdHJva2U9JyM2ZDI4ZDknIHN0cm9rZS13aWR0aD0nMS41Jy8+PGxpbmUgeDE9JzIwMCcgeTE9Jzc4JyB4Mj0nMjcwJyB5Mj0nMTE4JyBzdHJva2U9JyM2ZDI4ZDknIHN0cm9rZS13aWR0aD0nMS41Jy8+PGxpbmUgeDE9JzEzMCcgeTE9JzQ4JyB4Mj0nNzgnIHkyPScyOCcgc3Ryb2tlPScjNGMxZDk1JyBzdHJva2Utd2lkdGg9JzEnLz48bGluZSB4MT0nMTMwJyB5MT0nNDgnIHgyPSc3OCcgeTI9JzY4JyBzdHJva2U9JyM0YzFkOTUnIHN0cm9rZS13aWR0aD0nMScvPjxsaW5lIHgxPScyNzAnIHkxPSc0OCcgeDI9JzMyMicgeTI9JzI4JyBzdHJva2U9JyM0YzFkOTUnIHN0cm9rZS13aWR0aD0nMScvPjxsaW5lIHgxPScyNzAnIHkxPSc0OCcgeDI9JzMyMicgeTI9JzY4JyBzdHJva2U9JyM0YzFkOTUnIHN0cm9rZS13aWR0aD0nMScvPjxsaW5lIHgxPScxMzAnIHkxPScxMTgnIHgyPSc3OCcgeTI9JzEzOCcgc3Ryb2tlPScjNGMxZDk1JyBzdHJva2Utd2lkdGg9JzEnLz48bGluZSB4MT0nMjcwJyB5MT0nMTE4JyB4Mj0nMzIyJyB5Mj0nMTM4JyBzdHJva2U9JyM0YzFkOTUnIHN0cm9rZS13aWR0aD0nMScvPjxjaXJjbGUgY3g9JzIwMCcgY3k9Jzc4JyByPScxMycgZmlsbD0nIzdjM2FlZCcvPjxjaXJjbGUgY3g9JzEzMCcgY3k9JzQ4JyByPSc4JyBmaWxsPScjOGI1Y2Y2Jy8+PGNpcmNsZSBjeD0nMjcwJyBjeT0nNDgnIHI9JzgnIGZpbGw9JyM4YjVjZjYnLz48Y2lyY2xlIGN4PScxMzAnIGN5PScxMTgnIHI9JzgnIGZpbGw9JyM4YjVjZjYnLz48Y2lyY2xlIGN4PScyNzAnIGN5PScxMTgnIHI9JzgnIGZpbGw9JyM4YjVjZjYnLz48Y2lyY2xlIGN4PSc3OCcgY3k9JzI4JyByPSc1JyBmaWxsPScjYTc4YmZhJy8+PGNpcmNsZSBjeD0nNzgnIGN5PSc2OCcgcj0nNScgZmlsbD0nI2E3OGJmYScvPjxjaXJjbGUgY3g9JzMyMicgY3k9JzI4JyByPSc1JyBmaWxsPScjYTc4YmZhJy8+PGNpcmNsZSBjeD0nMzIyJyBjeT0nNjgnIHI9JzUnIGZpbGw9JyNhNzhiZmEnLz48Y2lyY2xlIGN4PSc3OCcgY3k9JzEzOCcgcj0nNScgZmlsbD0nI2E3OGJmYScvPjxjaXJjbGUgY3g9JzMyMicgY3k9JzEzOCcgcj0nNScgZmlsbD0nI2E3OGJmYScvPjx0ZXh0IHg9JzIwMCcgeT0nMTY4JyB0ZXh0LWFuY2hvcj0nbWlkZGxlJyBmaWxsPScjYzRiNWZkJyBmb250LXNpemU9JzE1JyBmb250LWZhbWlseT0nc2Fucy1zZXJpZicgZm9udC13ZWlnaHQ9J2JvbGQnPkFydGlmaWNpYWwgSW50ZWxsaWdlbmNlPC90ZXh0Pjx0ZXh0IHg9JzIwMCcgeT0nMTg2JyB0ZXh0LWFuY2hvcj0nbWlkZGxlJyBmaWxsPScjYzRiNWZkJyBmb250LXNpemU9JzExJyBmb250LWZhbWlseT0nc2Fucy1zZXJpZic+V2lraXBlZGlhPC90ZXh0Pjwvc3ZnPg==" alt="Artificial_intelligence"
            class="zoomable" id="img2"
            onclick="toggleZoom(this)"
            onmouseover="zoomIn(this)" onmouseout="zoomOut(this)" />
@@ -110,7 +109,7 @@ footer a { color: #58a6ff; }
       </div>
     </div>
     <div class="card">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Golden_Gate_Bridge_from_Baker_Beach.jpg/320px-Golden_Gate_Bridge_from_Baker_Beach.jpg" alt="Climate_change"
+      <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc0MDAnIGhlaWdodD0nMjAwJyB2aWV3Qm94PScwIDAgNDAwIDIwMCc+PHJlY3Qgd2lkdGg9JzQwMCcgaGVpZ2h0PScyMDAnIGZpbGw9JyMwYTFhMGEnLz48Y2lyY2xlIGN4PScyMDAnIGN5PSc5MCcgcj0nNjYnIGZpbGw9JyMxZTNhNWYnLz48ZWxsaXBzZSBjeD0nMTcyJyBjeT0nNzInIHJ4PScyMicgcnk9JzE4JyBmaWxsPScjMTU4MDNkJy8+PGVsbGlwc2UgY3g9JzIxOCcgY3k9JzgyJyByeD0nMjYnIHJ5PScyMCcgZmlsbD0nIzE2NjUzNCcvPjxlbGxpcHNlIGN4PScxODQnIGN5PScxMDQnIHJ4PScyMCcgcnk9JzE1JyBmaWxsPScjMTQ1MzJkJy8+PGVsbGlwc2UgY3g9JzIzMicgY3k9JzEwOCcgcng9JzE2JyByeT0nMTInIGZpbGw9JyMxNTgwM2QnLz48Y2lyY2xlIGN4PScyMDAnIGN5PSc5MCcgcj0nNjYnIGZpbGw9J25vbmUnIHN0cm9rZT0nIzIyYzU1ZScgc3Ryb2tlLXdpZHRoPScyJy8+PGNpcmNsZSBjeD0nMjAwJyBjeT0nOTAnIHI9JzcyJyBmaWxsPSdub25lJyBzdHJva2U9JyMxNmEzNGEnIHN0cm9rZS13aWR0aD0nMScgb3BhY2l0eT0nMC40Jy8+PHRleHQgeD0nMjAwJyB5PScxNzQnIHRleHQtYW5jaG9yPSdtaWRkbGUnIGZpbGw9JyM4NmVmYWMnIGZvbnQtc2l6ZT0nMTUnIGZvbnQtZmFtaWx5PSdzYW5zLXNlcmlmJyBmb250LXdlaWdodD0nYm9sZCc+Q2xpbWF0ZSBDaGFuZ2U8L3RleHQ+PHRleHQgeD0nMjAwJyB5PScxOTInIHRleHQtYW5jaG9yPSdtaWRkbGUnIGZpbGw9JyM4NmVmYWMnIGZvbnQtc2l6ZT0nMTEnIGZvbnQtZmFtaWx5PSdzYW5zLXNlcmlmJz5XaWtpcGVkaWE8L3RleHQ+PC9zdmc+" alt="Climate_change"
            class="zoomable" id="img3"
            onclick="toggleZoom(this)"
            onmouseover="zoomIn(this)" onmouseout="zoomOut(this)" />
@@ -161,12 +160,36 @@ function toggleZoom(img) {
   img.style.transform = img.classList.contains('zoomed') ? 'scale(1.8)' : 'scale(1.0)';
 }
 
-// Play sound
-function playSound(e) {
-  e.preventDefault();
-  var audio = document.getElementById('bgAudio');
-  if (audio.paused) { audio.play(); }
-  else { audio.pause(); audio.currentTime = 0; }
+// Synthesize launch sound via Web Audio API (no external file needed)
+function playSound(btn) {
+  try {
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) { alert('Web Audio API not supported in this browser.'); return; }
+    var ctx = new AC();
+    function tone(f, t, d, type, v) {
+      var o = ctx.createOscillator(), g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type = type; o.frequency.value = f;
+      g.gain.setValueAtTime(v, ctx.currentTime + t);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + d);
+      o.start(ctx.currentTime + t);
+      o.stop(ctx.currentTime + t + d + 0.05);
+    }
+    // Countdown beeps: 3-2-1 then ignition rumble
+    tone(880,  0.0, 0.09, 'square',   0.35);
+    tone(880,  0.6, 0.09, 'square',   0.35);
+    tone(880,  1.2, 0.09, 'square',   0.35);
+    tone(1320, 1.8, 0.35, 'square',   0.45);
+    tone(70,   1.8, 2.5,  'sawtooth', 0.28);
+    tone(110,  1.9, 2.2,  'sawtooth', 0.22);
+    tone(55,   2.0, 2.8,  'sawtooth', 0.18);
+    btn.textContent = '\u23F8 Playing...';
+    btn.disabled = true;
+    setTimeout(function() {
+      btn.textContent = '\u25B6 Play NASA Launch Sound';
+      btn.disabled = false;
+    }, 4500);
+  } catch(ex) { alert('Sound error: ' + ex.message); }
 }
 
 // Spell check via Java backend

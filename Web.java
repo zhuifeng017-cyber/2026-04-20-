@@ -239,13 +239,10 @@ public class Web {
         String img2 = w2.getOrDefault("imageUrl", "");
         String img3 = w3.getOrDefault("imageUrl", "");
 
-        // Fallback images (Wikimedia Commons public domain)
-        if (img1.isEmpty()) img1 = "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Earth_flag_PD.jpg/320px-Earth_flag_PD.jpg";
-        if (img2.isEmpty()) img2 = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Stonehenge_Closeup.jpg/320px-Stonehenge_Closeup.jpg";
-        if (img3.isEmpty()) img3 = "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Golden_Gate_Bridge_from_Baker_Beach.jpg/320px-Golden_Gate_Bridge_from_Baker_Beach.jpg";
-
-        // A public-domain NASA audio clip (Apollo 11 countdown)
-        String soundUrl = "https://upload.wikimedia.org/wikipedia/commons/4/4e/NASA_STS-1_launch_audio.ogg";
+        // Fallback: use embedded SVG data URIs (no internet required)
+        if (img1.isEmpty()) img1 = svgSpace();
+        if (img2.isEmpty()) img2 = svgAi();
+        if (img3.isEmpty()) img3 = svgClimate();
 
         StringBuilder sb = new StringBuilder();
         sb.append("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n")
@@ -266,13 +263,11 @@ public class Web {
           .append("  <p>").append(randomComment).append("</p>\n")
           .append("</section>\n\n")
 
-          // Sound link
+          // Sound button (Web Audio API – no external file needed)
           .append("<section class=\"sound-section\">\n")
-          .append("  <h2>&#x1F50A; Listen: NASA STS-1 Launch Audio</h2>\n")
-          .append("  <p>Click the link below to play the sound:</p>\n")
-          .append("  <a class=\"sound-link\" href=\"").append(soundUrl).append("\" target=\"_blank\"\n")
-          .append("     onclick=\"playSound(event)\">&#x25B6; Play NASA Launch Sound</a>\n")
-          .append("  <audio id=\"bgAudio\" src=\"").append(soundUrl).append("\"></audio>\n")
+          .append("  <h2>&#x1F50A; Listen: NASA Launch Sound Effect</h2>\n")
+          .append("  <p>Click the button below to play the synthesized launch sound:</p>\n")
+          .append("  <button class=\"sound-link\" id=\"soundBtn\" onclick=\"playSound(this)\">&#x25B6; Play NASA Launch Sound</button>\n")
           .append("</section>\n\n")
 
           // 3 Wikipedia cards
@@ -334,7 +329,77 @@ public class Web {
     }
 
     // -----------------------------------------------------------------------
-    // 8. Utilities
+    // 8. SVG fallback images (base64 data URIs – no internet required)
+    // -----------------------------------------------------------------------
+    private static String makeSvgDataUri(String svg) {
+        return "data:image/svg+xml;base64,"
+                + java.util.Base64.getEncoder()
+                      .encodeToString(svg.getBytes(StandardCharsets.UTF_8));
+    }
+
+    // These are method-level to avoid static-init ordering issues
+    private static String svgSpace() {
+        return makeSvgDataUri(
+            "<svg xmlns='http://www.w3.org/2000/svg' width='400' height='200' viewBox='0 0 400 200'>"
+            + "<rect width='400' height='200' fill='#050520'/>"
+            + "<circle cx='30' cy='25' r='1.5' fill='white'/><circle cx='80' cy='45' r='1' fill='white'/>"
+            + "<circle cx='150' cy='15' r='1.5' fill='white'/><circle cx='230' cy='35' r='1' fill='white'/>"
+            + "<circle cx='300' cy='20' r='2' fill='white'/><circle cx='370' cy='50' r='1' fill='white'/>"
+            + "<circle cx='60' cy='80' r='1' fill='white'/><circle cx='340' cy='90' r='1.5' fill='white'/>"
+            + "<circle cx='180' cy='60' r='1' fill='white'/><circle cx='260' cy='75' r='1' fill='white'/>"
+            + "<polygon points='200,22 182,100 218,100' fill='#aabbcc'/>"
+            + "<rect x='182' y='88' width='36' height='22' fill='#8899aa'/>"
+            + "<polygon points='185,108 175,132 195,118' fill='#ff8800'/>"
+            + "<polygon points='215,108 225,132 205,118' fill='#ff8800'/>"
+            + "<ellipse cx='200' cy='128' rx='9' ry='16' fill='#ff6600' opacity='0.85'/>"
+            + "<text x='200' y='168' text-anchor='middle' fill='#8ab4f8' font-size='15' font-family='sans-serif' font-weight='bold'>Space Exploration</text>"
+            + "<text x='200' y='186' text-anchor='middle' fill='#8ab4f8' font-size='11' font-family='sans-serif'>Wikipedia</text>"
+            + "</svg>");
+    }
+
+    private static String svgAi() {
+        return makeSvgDataUri(
+            "<svg xmlns='http://www.w3.org/2000/svg' width='400' height='200' viewBox='0 0 400 200'>"
+            + "<rect width='400' height='200' fill='#12082a'/>"
+            + "<line x1='200' y1='78' x2='130' y2='48' stroke='#6d28d9' stroke-width='1.5'/>"
+            + "<line x1='200' y1='78' x2='270' y2='48' stroke='#6d28d9' stroke-width='1.5'/>"
+            + "<line x1='200' y1='78' x2='130' y2='118' stroke='#6d28d9' stroke-width='1.5'/>"
+            + "<line x1='200' y1='78' x2='270' y2='118' stroke='#6d28d9' stroke-width='1.5'/>"
+            + "<line x1='130' y1='48' x2='78' y2='28' stroke='#4c1d95' stroke-width='1'/>"
+            + "<line x1='130' y1='48' x2='78' y2='68' stroke='#4c1d95' stroke-width='1'/>"
+            + "<line x1='270' y1='48' x2='322' y2='28' stroke='#4c1d95' stroke-width='1'/>"
+            + "<line x1='270' y1='48' x2='322' y2='68' stroke='#4c1d95' stroke-width='1'/>"
+            + "<line x1='130' y1='118' x2='78' y2='138' stroke='#4c1d95' stroke-width='1'/>"
+            + "<line x1='270' y1='118' x2='322' y2='138' stroke='#4c1d95' stroke-width='1'/>"
+            + "<circle cx='200' cy='78' r='13' fill='#7c3aed'/>"
+            + "<circle cx='130' cy='48' r='8' fill='#8b5cf6'/><circle cx='270' cy='48' r='8' fill='#8b5cf6'/>"
+            + "<circle cx='130' cy='118' r='8' fill='#8b5cf6'/><circle cx='270' cy='118' r='8' fill='#8b5cf6'/>"
+            + "<circle cx='78' cy='28' r='5' fill='#a78bfa'/><circle cx='78' cy='68' r='5' fill='#a78bfa'/>"
+            + "<circle cx='322' cy='28' r='5' fill='#a78bfa'/><circle cx='322' cy='68' r='5' fill='#a78bfa'/>"
+            + "<circle cx='78' cy='138' r='5' fill='#a78bfa'/><circle cx='322' cy='138' r='5' fill='#a78bfa'/>"
+            + "<text x='200' y='168' text-anchor='middle' fill='#c4b5fd' font-size='15' font-family='sans-serif' font-weight='bold'>Artificial Intelligence</text>"
+            + "<text x='200' y='186' text-anchor='middle' fill='#c4b5fd' font-size='11' font-family='sans-serif'>Wikipedia</text>"
+            + "</svg>");
+    }
+
+    private static String svgClimate() {
+        return makeSvgDataUri(
+            "<svg xmlns='http://www.w3.org/2000/svg' width='400' height='200' viewBox='0 0 400 200'>"
+            + "<rect width='400' height='200' fill='#0a1a0a'/>"
+            + "<circle cx='200' cy='90' r='66' fill='#1e3a5f'/>"
+            + "<ellipse cx='172' cy='72' rx='22' ry='18' fill='#15803d'/>"
+            + "<ellipse cx='218' cy='82' rx='26' ry='20' fill='#166534'/>"
+            + "<ellipse cx='184' cy='104' rx='20' ry='15' fill='#14532d'/>"
+            + "<ellipse cx='232' cy='108' rx='16' ry='12' fill='#15803d'/>"
+            + "<circle cx='200' cy='90' r='66' fill='none' stroke='#22c55e' stroke-width='2'/>"
+            + "<circle cx='200' cy='90' r='72' fill='none' stroke='#16a34a' stroke-width='1' opacity='0.4'/>"
+            + "<text x='200' y='174' text-anchor='middle' fill='#86efac' font-size='15' font-family='sans-serif' font-weight='bold'>Climate Change</text>"
+            + "<text x='200' y='192' text-anchor='middle' fill='#86efac' font-size='11' font-family='sans-serif'>Wikipedia</text>"
+            + "</svg>");
+    }
+
+    // -----------------------------------------------------------------------
+    // 9. Utilities
     // -----------------------------------------------------------------------
     private static String escapeHtml(String s) {
         if (s == null) return "";
@@ -376,9 +441,10 @@ public class Web {
         + ".sound-section { background: #161b22; border: 1px solid #30363d;\n"
         + "  border-radius: 8px; padding: 20px 24px; }\n"
         + ".sound-link { display: inline-block; background: #1f6feb; color: #fff;\n"
-        + "  padding: 10px 22px; border-radius: 6px; font-weight: bold;\n"
-        + "  margin-top: 10px; transition: background 0.2s; }\n"
+        + "  padding: 10px 22px; border-radius: 6px; font-weight: bold; border: none;\n"
+        + "  margin-top: 10px; cursor: pointer; font-size: 1rem; transition: background 0.2s; }\n"
         + ".sound-link:hover { background: #388bfd; text-decoration: none; }\n"
+        + ".sound-link:disabled { background: #555; cursor: not-allowed; }\n"
         + ".cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }\n"
         + ".card { background: #161b22; border: 1px solid #30363d; border-radius: 10px;\n"
         + "  overflow: hidden; transition: box-shadow 0.3s; }\n"
@@ -430,12 +496,36 @@ public class Web {
         + "  img.classList.toggle('zoomed');\n"
         + "  img.style.transform = img.classList.contains('zoomed') ? 'scale(1.8)' : 'scale(1.0)';\n"
         + "}\n\n"
-        + "// Play sound\n"
-        + "function playSound(e) {\n"
-        + "  e.preventDefault();\n"
-        + "  var audio = document.getElementById('bgAudio');\n"
-        + "  if (audio.paused) { audio.play(); }\n"
-        + "  else { audio.pause(); audio.currentTime = 0; }\n"
+        + "// Synthesize launch sound via Web Audio API (no external file needed)\n"
+        + "function playSound(btn) {\n"
+        + "  try {\n"
+        + "    var AC = window.AudioContext || window.webkitAudioContext;\n"
+        + "    if (!AC) { alert('Web Audio API not supported in this browser.'); return; }\n"
+        + "    var ctx = new AC();\n"
+        + "    function tone(f, t, d, type, v) {\n"
+        + "      var o = ctx.createOscillator(), g = ctx.createGain();\n"
+        + "      o.connect(g); g.connect(ctx.destination);\n"
+        + "      o.type = type; o.frequency.value = f;\n"
+        + "      g.gain.setValueAtTime(v, ctx.currentTime + t);\n"
+        + "      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + d);\n"
+        + "      o.start(ctx.currentTime + t);\n"
+        + "      o.stop(ctx.currentTime + t + d + 0.05);\n"
+        + "    }\n"
+        + "    // Countdown beeps: 3-2-1 then ignition rumble\n"
+        + "    tone(880,  0.0, 0.09, 'square',   0.35);\n"
+        + "    tone(880,  0.6, 0.09, 'square',   0.35);\n"
+        + "    tone(880,  1.2, 0.09, 'square',   0.35);\n"
+        + "    tone(1320, 1.8, 0.35, 'square',   0.45);\n"
+        + "    tone(70,   1.8, 2.5,  'sawtooth', 0.28);\n"
+        + "    tone(110,  1.9, 2.2,  'sawtooth', 0.22);\n"
+        + "    tone(55,   2.0, 2.8,  'sawtooth', 0.18);\n"
+        + "    btn.textContent = '\\u23F8 Playing...';\n"
+        + "    btn.disabled = true;\n"
+        + "    setTimeout(function() {\n"
+        + "      btn.textContent = '\\u25B6 Play NASA Launch Sound';\n"
+        + "      btn.disabled = false;\n"
+        + "    }, 4500);\n"
+        + "  } catch(ex) { alert('Sound error: ' + ex.message); }\n"
         + "}\n\n"
         + "// Spell check via Java backend\n"
         + "function checkSpelling() {\n"
