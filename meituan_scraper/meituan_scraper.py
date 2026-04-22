@@ -137,17 +137,21 @@ class MeituanScraper:
                 if resp.status_code == 200:
                     return resp.json()
 
+                if resp.status_code == 404:
+                    log.warning("HTTP 404 端点不存在，跳过 → %s", resp.url)
+                    return None  # 不重试，直接放弃这个端点
+
                 if resp.status_code in (401, 403):
-                    log.warning("鉴权失败 %d，Cookie 可能已过期，请重新抓包更新", resp.status_code)
+                    log.warning("鉴权失败 %d，Cookie 可能已过期，请重新抓包更新 → %s", resp.status_code, resp.url)
                     return None
 
                 if resp.status_code == 429:
                     wait = config.RETRY_BACKOFF ** attempt * 5
-                    log.warning("触发限流 (429)，等待 %.1f 秒后重试", wait)
+                    log.warning("触发限流 (429)，等待 %.1f 秒后重试 → %s", wait, resp.url)
                     time.sleep(wait)
                     continue
 
-                log.warning("HTTP %d，尝试 %d/%d", resp.status_code, attempt, config.MAX_RETRIES)
+                log.warning("HTTP %d，尝试 %d/%d → %s", resp.status_code, attempt, config.MAX_RETRIES, resp.url)
 
             except requests.exceptions.ConnectionError as e:
                 log.warning("连接错误 (尝试 %d): %s", attempt, e)
