@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 """
 美团店铺商品爬虫
-用法: python meituan_scraper.py "店铺名称" [--limit 100]
+用法:
+  python meituan_scraper.py "店铺名称"
+  python meituan_scraper.py "星巴克" --address "朝阳区"   # 按地址关键词筛选
+  python meituan_scraper.py --poi-id 12345678            # 直接指定 POI ID，跳过搜索
+  python meituan_scraper.py "星巴克" --no-interactive     # 非交互：自动选评分最高的
+  python meituan_scraper.py "星巴克" --limit 200
 """
 
 import argparse
@@ -157,32 +162,114 @@ class MeituanScraper:
 
     # ── 店铺搜索 ──────────────────────────────────────────────────────────────
 
-    def search_store(self, store_name: str) -> Optional[dict]:
+    def search_store(
+        self,
+        store_name: str,
+        address_filter: str = "",
+        interactive: bool = True,
+    ) -> Optional[dict]:
         """
-        搜索店铺名称，返回第一个匹配结果的基本信息。
-        依次尝试外卖搜索 → 备用 Web 搜索 → 到店搜索。
+        搜索店铺名称，收集所有候选后：
+        - 1 个结果  → 直接使用
+        - 多个结果  → 列表展示，交互选择（或 --no-interactive 时自动选评分最高的）
+        - 0 个结果  → 报错
+
+        address_filter: 额外按地址关键词过滤（如 "朝阳区"、"望京"）
         """
-        log.info("正在搜索店铺：%s", store_name)
+        log.info("正在搜索店铺：%s%s", store_name,
+                 f"（地址含：{address_filter}）" if address_filter else "")
 
-        # ① 外卖搜索（最常用）
-        result = self._search_waimai(store_name)
-        if result:
-            return result
+        all_candidates: list[dict] = []
+        seen_ids: set[str] = set()
 
-        # ② 备用：Web 外卖搜索
-        result = self._search_waimai_web(store_name)
-        if result:
-            return result
+        for candidates in [
+            self._search_waimai(store_name),
+            self._search_waimai_web(store_name),
+            self._search_dianping(store_name),
+        ]:
+            for c in candidates:
+                pid = c["poi_id"]
+                if pid not in seen_ids:
+                    seen_ids.add(pid)
+                    all_candidates.append(c)
 
-        # ③ 备用：到店（美食/超市）搜索
-        result = self._search_dianping(store_name)
-        if result:
-            return result
+        # 地址关键词过滤
+        if address_filter and all_candidates:
+            filtered = [c for c in all_candidates if address_filter in c.get("address", "")]
+            if filtered:
+                all_candidates = filtered
+            else:
+                log.warning("地址过滤「%s」无结果，忽略过滤条件", address_filter)
 
-        log.error("未找到店铺：%s。请确认店铺名称或检查 Cookie 是否有效", store_name)
-        return None
+        if not all_candidates:
+            log.error("未找到店铺：%s。请确认店铺名称或检查 Cookie 是否有效", store_name)
+            return None
 
-    def _search_waimai(self, store_name: str) -> Optional[dict]:
+        if len(all_candidates) == 1:
+            c = all_candidates[0]
+            log.info("唯一匹配：%s（%s）POI ID: %s", c["name"], c["address"], c["poi_id"])
+            return c
+
+        # 多个候选 ── 按名称精确度排序（完全相同的排前面）
+        all_candidates.sort(
+            key=lambda c: (
+                0 if c["name"] == store_name else 1,   # 精确名称优先
+                -float(c.get("score") or 0),            # 评分降序
+            )
+        )
+
+        if not interactive:
+            chosen = all_candidates[0]
+            log.info(
+                "非交互模式，自动选择：%s（%s）POI ID: %s",
+                chosen["name"], chosen["address"], chosen["poi_id"],
+            )
+            return chosen
+
+        return self._pick_store(all_candidates)
+
+    def _pick_store(self, candidates: list[dict]) -> Optional[dict]:
+        """交互式列表，让用户选择目标门店"""
+        print("\n找到以下匹配门店，请选择：\n")
+        print(f"{'序号':<4} {'店铺名称':<25} {'地址':<35} {'评分':<6} POI ID")
+        print("─" * 85)
+        for i, c in enumerate(candidates, 1):
+            name    = (c.get("name") or "")[:24]
+            addr    = (c.get("address") or "")[:34]
+            score   = c.get("score") or "-"
+            poi_id  = c.get("poi_id", "")
+            print(f"{i:<4} {name:<25} {addr:<35} {score!s:<6} {poi_id}")
+        print()
+
+        while True:
+            raw = input(f"请输入序号 [1-{len(candidates)}]，或输入 0 取消：").strip()
+            if raw == "0":
+                return None
+            if raw.isdigit() and 1 <= int(raw) <= len(candidates):
+                chosen = candidates[int(raw) - 1]
+                log.info("已选择：%s（%s）POI ID: %s",
+                         chosen["name"], chosen["address"], chosen["poi_id"])
+                return chosen
+            print("输入无效，请重试")
+
+    def resolve_poi_id(self, poi_id: str) -> dict:
+        """直接用 POI ID 构造店铺信息（跳过搜索，用 --poi-id 时调用）"""
+        log.info("直接使用 POI ID: %s", poi_id)
+        # 尝试拉取详情补充名称，失败也不影响商品抓取
+        data = self._get(
+            API.POI_DETAIL.format(poi_id=poi_id),
+            params={"wmPoiId": poi_id, "platform": "iphone"},
+            delay_range=(0.5, 1.0),
+        )
+        name = poi_id
+        address = ""
+        if data:
+            d = data.get("data", data)
+            name    = d.get("name") or d.get("title") or poi_id
+            address = d.get("address") or d.get("addr") or ""
+        return {"poi_id": poi_id, "name": name, "address": address, "source": "direct"}
+
+    def _search_waimai(self, store_name: str) -> list[dict]:
         params = {
             "q": store_name,
             "cityid": self.city_id,
@@ -191,26 +278,26 @@ class MeituanScraper:
             "appid": "1",
             "userid": self.session.cookies.get("userId", ""),
             "uuid": self.session.cookies.get("uuid", ""),
-            "limit": "5",
+            "limit": "20",   # 多取一些候选
             "offset": "0",
         }
         data = self._get(API.WAIMAI_SEARCH, params=params)
-        return self._extract_poi_from_search(data, store_name, "waimai")
+        return self._extract_candidates(data, store_name, "waimai")
 
-    def _search_waimai_web(self, store_name: str) -> Optional[dict]:
+    def _search_waimai_web(self, store_name: str) -> list[dict]:
         params = {
             "keyword": store_name,
             "cityId": self.city_id,
-            "platform": "2",  # 2 = web
+            "platform": "2",
         }
         headers = {
             "Referer": "https://waimai.meituan.com/",
             "Origin": "https://waimai.meituan.com",
         }
         data = self._get(API.WEB_SEARCH, params=params, extra_headers=headers)
-        return self._extract_poi_from_search(data, store_name, "waimai_web")
+        return self._extract_candidates(data, store_name, "waimai_web")
 
-    def _search_dianping(self, store_name: str) -> Optional[dict]:
+    def _search_dianping(self, store_name: str) -> list[dict]:
         params = {
             "q": store_name,
             "cityid": self.city_id,
@@ -218,17 +305,16 @@ class MeituanScraper:
             "version": "12.56.202",
         }
         data = self._get(API.DIANPING_SEARCH, params=params)
-        return self._extract_poi_from_search(data, store_name, "dianping")
+        return self._extract_candidates(data, store_name, "dianping")
 
-    def _extract_poi_from_search(
+    def _extract_candidates(
         self, data: Optional[dict], store_name: str, source: str
-    ) -> Optional[dict]:
-        """从各搜索接口的响应中提取第一个匹配的 POI 信息"""
+    ) -> list[dict]:
+        """从搜索响应中提取所有名称包含 store_name 的门店"""
         if not data:
-            return None
+            return []
 
-        # 尝试多种常见响应结构
-        candidates = []
+        raw_list = []
         for path in [
             ["data", "searchResult", "poiInfos"],
             ["data", "poiList"],
@@ -240,41 +326,41 @@ class MeituanScraper:
                 for key in path:
                     node = node[key]
                 if isinstance(node, list):
-                    candidates = node
+                    raw_list = node
                     break
             except (KeyError, TypeError):
                 continue
 
-        for item in candidates:
+        results = []
+        for item in raw_list:
             name = item.get("name", "") or item.get("title", "")
-            if store_name in name:
-                poi_id = (
-                    item.get("wmPoiId")
-                    or item.get("poiId")
-                    or item.get("id")
-                    or item.get("poi_id")
-                )
-                if poi_id:
-                    log.info(
-                        "[%s] 找到店铺：%s (POI ID: %s)", source, name, poi_id
-                    )
-                    return {
-                        "poi_id": str(poi_id),
-                        "name": name,
-                        "address": item.get("address", ""),
-                        "avg_price": item.get("avgPrice", item.get("mean", "")),
-                        "score": item.get("score", item.get("wm_poi_score", "")),
-                        "month_sale_num": item.get("monthSaleNum", ""),
-                        "shipping_fee": item.get("shippingFee", ""),
-                        "min_price": item.get("minPrice", ""),
-                        "delivery_time": item.get("deliveryTime", ""),
-                        "latitude": item.get("latitude", ""),
-                        "longitude": item.get("longitude", ""),
-                        "source": source,
-                    }
+            if store_name not in name:
+                continue
+            poi_id = (
+                item.get("wmPoiId")
+                or item.get("poiId")
+                or item.get("id")
+                or item.get("poi_id")
+            )
+            if not poi_id:
+                continue
+            results.append({
+                "poi_id":        str(poi_id),
+                "name":          name,
+                "address":       item.get("address", ""),
+                "avg_price":     item.get("avgPrice", item.get("mean", "")),
+                "score":         item.get("score", item.get("wm_poi_score", "")),
+                "month_sale_num": item.get("monthSaleNum", ""),
+                "shipping_fee":  item.get("shippingFee", ""),
+                "min_price":     item.get("minPrice", ""),
+                "delivery_time": item.get("deliveryTime", ""),
+                "latitude":      item.get("latitude", ""),
+                "longitude":     item.get("longitude", ""),
+                "source":        source,
+            })
 
-        log.debug("[%s] 响应中未匹配到目标店铺，原始 keys: %s", source, list(data.keys()) if data else [])
-        return None
+        log.debug("[%s] 共找到 %d 个候选门店", source, len(results))
+        return results
 
     # ── 商品列表抓取 ──────────────────────────────────────────────────────────
 
@@ -482,16 +568,26 @@ class MeituanScraper:
 
     # ── 入口 ─────────────────────────────────────────────────────────────────
 
-    def run(self, store_name: str) -> int:
-        poi_info = self.search_store(store_name)
-        if not poi_info:
-            return 1
+    def run(
+        self,
+        store_name: str = "",
+        poi_id: str = "",
+        address_filter: str = "",
+        interactive: bool = True,
+    ) -> int:
+        if poi_id:
+            poi_info = self.resolve_poi_id(poi_id)
+        else:
+            poi_info = self.search_store(store_name, address_filter, interactive)
+            if not poi_info:
+                return 1
 
         products = self.get_products(poi_info)
         if not products:
             return 1
 
-        self.save(store_name, poi_info, products)
+        label = store_name or poi_info["name"] or poi_id
+        self.save(label, poi_info, products)
         log.info("完成！共采集 %d 件商品", len(products))
         return 0
 
@@ -499,22 +595,43 @@ class MeituanScraper:
 # ── CLI ────────────────────────────────────────────────────────────────────────
 
 def main():
-    parser = argparse.ArgumentParser(description="美团店铺商品爬虫")
-    parser.add_argument("store_name", nargs="?", default="", help="店铺名称")
-    parser.add_argument("--limit", type=int, default=None, help="最大采集商品数（默认 config.py 中的 LIMIT）")
+    parser = argparse.ArgumentParser(
+        description="美团店铺商品爬虫",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+示例:
+  python meituan_scraper.py "星巴克"
+  python meituan_scraper.py "星巴克" --address "朝阳区"
+  python meituan_scraper.py --poi-id 12345678
+  python meituan_scraper.py "麦当劳" --no-interactive --limit 50
+        """,
+    )
+    parser.add_argument("store_name", nargs="?", default="", help="店铺名称（与 --poi-id 二选一）")
+    parser.add_argument("--poi-id",        default="",    help="直接指定美团 POI ID，跳过搜索（精准定位）")
+    parser.add_argument("--address",       default="",    help="地址关键词过滤，如 '朝阳区'、'望京'")
+    parser.add_argument("--limit",         type=int, default=None, help="最大采集商品数（默认读 config.py）")
+    parser.add_argument("--no-interactive", action="store_true",   help="多结果时不交互，自动选评分最高的")
     args = parser.parse_args()
 
-    store_name = args.store_name or config.STORE_NAME
-    if not store_name:
-        store_name = input("请输入店铺名称：").strip()
-    if not store_name:
-        print("错误：店铺名称不能为空")
-        sys.exit(1)
+    if not args.poi_id:
+        store_name = args.store_name or config.STORE_NAME
+        if not store_name:
+            store_name = input("请输入店铺名称：").strip()
+        if not store_name:
+            print("错误：店铺名称不能为空（或使用 --poi-id 直接指定）")
+            sys.exit(1)
+    else:
+        store_name = ""
 
     limit = args.limit if args.limit is not None else config.LIMIT
 
     scraper = MeituanScraper(limit=limit)
-    sys.exit(scraper.run(store_name))
+    sys.exit(scraper.run(
+        store_name=store_name,
+        poi_id=args.poi_id,
+        address_filter=args.address,
+        interactive=not args.no_interactive,
+    ))
 
 
 if __name__ == "__main__":
