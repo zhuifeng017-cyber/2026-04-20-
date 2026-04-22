@@ -44,8 +44,8 @@ BASE_HEADERS = {
     "Accept-Language": "zh-CN,zh-Hans;q=0.9",
     "Accept-Encoding": "gzip, deflate, br",
     "Connection": "keep-alive",
-    # UA 解码自抓包：美团/321059 CFNetwork/3860.500.112 Darwin/25.4.0
-    "User-Agent": "美团/321059 CFNetwork/3860.500.112 Darwin/25.4.0",
+    # HTTP 头仅支持 latin-1；原始抓包 UA 已是 percent-encoded 形式，直接使用
+    "User-Agent": "%E7%BE%8E%E5%9B%A2/321059 CFNetwork/3860.500.112 Darwin/25.4.0",
 }
 
 # 部分接口需要额外标识是移动端来源
